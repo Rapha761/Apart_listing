@@ -10,7 +10,7 @@ def load_google_sheets():
     client = gspread.authorize(creds)
 
     # Open the Google Sheet
-    sheet = client.open("Your Google Sheet Name").sheet1
+    sheet = client.open("Listing_form").sheet1
 
     # Fetch data
     data = sheet.get_all_records()
