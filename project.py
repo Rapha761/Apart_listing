@@ -23,12 +23,12 @@ df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
 # Sidebar filters
 st.sidebar.header("Filters")
-unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["Unit Type"].unique()))
+unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["Unit type"].unique()))
 residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All"] + sorted(df_combined["Residence"].unique()))
 
 # Apply filters
 if unit_type_filter != "All":
-    df_combined = df_combined[df_combined["Unit Type"] == unit_type_filter]
+    df_combined = df_combined[df_combined["Unit type"] == unit_type_filter]
 if residence_filter != "All":
     df_combined = df_combined[df_combined["Residence"] == residence_filter]
 
@@ -44,10 +44,12 @@ if not df_combined.empty:
                 <h4>{title}</h4>
                 <p><strong>Dates:</strong> {row['Dates']}</p>
                 <p><strong>Posted by:</strong> {row['Name']}</p>
-                <p><strong>Posted on:</strong> {row['Date']}</p>
+                <p><strong>Posted on:</strong> {row['Date']} at {row['Time']}</p>
                 <p><strong>Address:</strong> {row['Address']}</p>
-                <p><strong>Location Features:</strong> {row['Location Features']}</p>
+                <p><strong>Amenities:</strong> {row['Amenities']}</p>
+                <p><strong>Location Features:</strong> {row['Location features']}</p>
                 <p class="price"><strong>Rent:</strong> {row['Rent']} €</p>
+                <p><strong>Message:</strong> {row['Message']}</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -64,12 +66,15 @@ with st.sidebar.form("new_listing_form"):
     rent = st.number_input("Rent (€)", min_value=0, step=50)
     unit_type = st.selectbox("Unit Type", ["Studio", "Apartment", "Room"])
     residence = st.radio("Residence", ["Yes", "No"])
-    location_features = st.text_area("Location Features")
+    amenities = st.text_area("Amenities (optional)")
+    location_features = st.text_area("Location Features (optional)")
+    message = st.text_area("Message (optional)")
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        add_listing_to_google_sheets(name, dates, address, rent, unit_type, residence, location_features)
+        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
 
 
