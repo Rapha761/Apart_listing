@@ -16,7 +16,11 @@ def load_google_sheets():
 
     # Fetch data
     data = sheet.get_all_records()
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+
+    # Standardize column names
+    df.columns = df.columns.str.strip().str.lower()
+    return df
 
 def add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message):
     # Authenticate using Streamlit Secrets
