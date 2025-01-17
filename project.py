@@ -3,15 +3,6 @@ import pandas as pd
 from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets
 
 
-import json
-
-try:
-    with open("google_sheets_credentials.json") as f:
-        creds = json.load(f)
-        print("JSON credentials loaded successfully!")
-except FileNotFoundError:
-    print("google_sheets_credentials.json not found!")
-
 # Load the Excel file
 uploaded_file = "Filtered_WhatsApp_Announcements (1).xlsx"
 
