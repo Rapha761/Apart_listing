@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets
 
-
 # Load the Excel file
 uploaded_file = "Filtered_WhatsApp_Announcements (1).xlsx"
 
@@ -46,6 +45,7 @@ if not df_combined.empty:
                 <p><strong>Dates:</strong> {row['Dates']}</p>
                 <p><strong>Posted by:</strong> {row['Name']}</p>
                 <p><strong>Posted on:</strong> {row['Date']}</p>
+                <p><strong>Address:</strong> {row['Address']}</p>
                 <p><strong>Location Features:</strong> {row['Location Features']}</p>
                 <p class="price"><strong>Rent:</strong> {row['Rent']} €</p>
             </div>
@@ -59,6 +59,8 @@ else:
 st.sidebar.header("Add a New Listing")
 with st.sidebar.form("new_listing_form"):
     name = st.text_input("Name")
+    dates = st.text_input("Dates (e.g., '01 Jan 2025 - 31 Jan 2025')")
+    address = st.text_input("Address")
     rent = st.number_input("Rent (€)", min_value=0, step=50)
     unit_type = st.selectbox("Unit Type", ["Studio", "Apartment", "Room"])
     residence = st.radio("Residence", ["Yes", "No"])
@@ -66,8 +68,9 @@ with st.sidebar.form("new_listing_form"):
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        add_listing_to_google_sheets(name, rent, unit_type, residence, location_features)
+        add_listing_to_google_sheets(name, dates, address, rent, unit_type, residence, location_features)
         st.success("Offer added successfully!")
+
 
 
 
