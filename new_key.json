@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "studapart-listing-milan",
+  "private_key_id": "076a75a151c9b59c570b5633ef9b34e93c9ec96b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDkLjvK+2J+Nz58\n50kEb1Q37fur4jEnKP5t2jd14NvO6fqDU8TsUzaJjte1DxlkcNTWrnJE1JQ/th8u\nhur/QwVLvfCku+cavnfMXf2H6EFQD0f0nvsTY6aRmGG2Vbq+OU2Gj1YFgXRQmnNB\niWZIwGRA6OQ80QhmZMd4FPhoSnpREo93fpER6lbr5WygpBDTnQwZz10eiQl1ISCJ\nmc45cEiC//qLOW3htMa4sjCUNwlIhUmVUvLOvUV9lNDMueM0hvmVJXaec7VQF3Md\nW41vmk23tT8bNgngVSHi3/8T25tVW1K1ywFGQnf/k6iol9JxTEgogHnu7Cq3RcMA\npJQl8ii1AgMBAAECggEACkllS6zSj2MZL5NTsN39+3mAl4qecagA9F3akzdcYXMd\n5o6/uXG06zWj1tdD60nE5pq9rwmwV0D0HepaLMDOO9BnyV1pOUTt7KouFFLtotjV\ngxspsYGUEEtA2HH79bhqnM7Yb24bGskjuggiMtRtkJmPNIit6sPPVEQJwNXetsnc\nH59PzCL+6L32dlSzfig3k60+I+VyqsOKJDU0dS4/WbE6WsFVztCv4PHUMagyWrvD\nRn1BjSDuCTzgbyAQD2Q2SjFRF4E5zdROXWQUBybCrfPVqeI1uS9wUXZViBQqk/Hl\nPK09CvObdCpCp1URCgGMQQdchZsjrnvnLiATUjStcQKBgQD1KAQ/iAtfa4HsYSfM\ntoPk7cwEFeamiU/xRtqNflW1l20k1aULi3C4d6/xAzmLpdVlwQFEHEONJKW72NvM\nllWwAD0rsaboi13PRERTPQRnj4Azhmh4nQLQaYxS9OLJFgnpl8UCYbKCIFC9QNSS\n8LdcwQcv0QQQ16YXBNI7dKx6DQKBgQDuRf7aUOsM1urTnunY2zpcr5pYzhinnUDW\njjr4m1RojgfkOWW4D8dPUJZcNF+eOJO6kDYf/64VkMkonxVPYEJidS9n1l/FRMfV\nWZgJLbVSy2gSD5fsYcOcCuy8VOSTVOVCP+ebUYIxEnOWe5X8YzNgEYJtKyZVFh4e\nnagydOEHSQKBgFCw+iz7F1sx5JKsK9BqpqD8UDFsD/3ypjhxLNBzq7xYehkspOVW\n4SQmaOe4OwGm9MVIMKV9dBKJ5G8e4sHFHbEPcxLlp11VOexVuPN42vFHP1g2Pj6s\n11dH1mMbrWWodlzHkpXFGF9SSaDxLMasqn3CHx5y+paclFNxR81ACuElAoGANWPv\nyEGLebQKqGKaaaIuAKjEgBOmSKCe77StGBnOHyN8NzJ5TXYTpf0bxAtkRZLN32cD\nCcaD3ocz2+tRnhimp2M0vSK3EP/pey/5Nk1MrQGxDyL5WtlJOITmKQkosq66NE8X\neaEY+B/3UIfewtADqgoiXI3np/ctxpRzJOM1rSkCgYBD49E2uc3440HTXTVUrwhY\ndMlTOHUF79POZ8NCbiQS5Hqxbb6DDJOPdpnXHN0B24RUPgWGyckujMBf/YkAB/ty\nvOKQk5IyO0VW1UIEAmeo7wj9lgAhvEkhJo+61P8DVlfz9obaNsNx/mBeND9OxHGB\nxOJhjW8WkNAU1T/8znhuZA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "service-account@studapart-listing-milan.iam.gserviceaccount.com",
+  "client_id": "105329524818250715975",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/service-account%40studapart-listing-milan.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
