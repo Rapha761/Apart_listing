@@ -24,7 +24,7 @@ def add_listing_to_google_sheets(name, rent, unit_type, residence, location_feat
     client = gspread.authorize(creds)
 
     # Open the Google Sheet
-    sheet = client.open("Your Google Sheet Name").sheet1
+    sheet = client.open("Listing_form").sheet1
 
     # Append new data
     sheet.append_row([name, rent, unit_type, residence, location_features])
