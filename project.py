@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import uuid
-from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets, update_contact_in_google_sheets
+from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets, update_contact_in_google_sheets, transfer_excel_to_google_sheets
 
 # Load the Excel file
 uploaded_file = "Filtered_WhatsApp_Announcements (9).xlsx"
@@ -12,21 +11,15 @@ data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in 
 for key in data:
     data[key].columns = data[key].columns.str.strip().str.lower()
 
-# Sidebar navigation
-st.sidebar.header("Navigation")
-selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
+# Transfer Excel data to Google Sheets
+for key in data:
+    transfer_excel_to_google_sheets(data[key])
 
-# Load the selected sheet
-df_excel = data[selected_view].fillna("NA")
+# Load all data from Google Sheets
+df_combined = load_google_sheets()
 
-# Load additional data from Google Sheets
-df_google_sheets = load_google_sheets()
-
-# Standardize column names in Google Sheets data
-df_google_sheets.columns = df_google_sheets.columns.str.strip().str.lower()
-
-# Combine datasets
-df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
+# Standardize column names
+df_combined.columns = df_combined.columns.str.strip().str.lower()
 
 # Parse the "date" column and handle errors
 df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
@@ -81,12 +74,11 @@ if not df_combined.empty:
             """,
             unsafe_allow_html=True,
         )
-        contact_input_key = f"contact_input_{index}"
-        submit_button_key = f"submit_contact_{index}"
-        contact = st.text_input("Enter your contact details:", key=contact_input_key)
-        if st.button("Submit Contact", key=submit_button_key):
-            update_contact_in_google_sheets(row, contact)
-            st.success("Contact added successfully!")
+        if st.button(f"Add Contact to Listing {index}"):
+            contact = st.text_input("Enter your contact details:")
+            if st.button("Submit Contact"):
+                update_contact_in_google_sheets(row, contact)
+                st.success("Contact added successfully!")
 else:
     st.write("No listings match your filters.")
 
@@ -102,13 +94,13 @@ with st.sidebar.form("new_listing_form"):
     amenities = st.text_area("Amenities (optional)")
     location_features = st.text_area("Location Features (optional)")
     message = st.text_area("Message (optional)")
-    contact = st.text_input("Contact")
+    contact = st.text_input("Contact (optional)")
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        unique_id = str(uuid.uuid4())
-        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact, unique_id)
+        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
         st.success("Offer added successfully!")
+
 
 
 
