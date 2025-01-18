@@ -38,18 +38,15 @@ def add_listing_to_google_sheets(name, dates, rent, unit_type, residence, addres
     sheet.append_row(new_row)
 
 # Update contact details in Google Sheets
-def update_contact_in_google_sheets(row, contact):
+def update_contact_in_google_sheets(row, contact, index):
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
     client = gspread.authorize(creds)
     sheet = client.open("Listing_form").sheet1
 
-    # Find the row index for the listing
+    # Identify listing by its index in Google Sheets
     listings = sheet.get_all_records()
-    for i, listing in enumerate(listings, start=2):  # Start at 2 to account for the header row
-        if all(str(listing[key]).strip() == str(row[key]).strip() for key in row.index if key in listing):
-            sheet.update_cell(i, len(listing) - 1, contact)  # Update the 'Contact' column
-            break
+    sheet.update_cell(index + 2, len(listings[0]), contact)  # Update the contact column for the correct row
 
 
 
