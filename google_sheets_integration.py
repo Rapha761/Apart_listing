@@ -34,11 +34,15 @@ def update_contact_in_google_sheets(row, contact):
     # Use unique ID to match the listing
     unique_id = row.get("unique_id", "").strip()
     for i, listing in enumerate(listings):
+        # Debugging: Log the listing's keys
+        print(f"Listing keys: {list(listing.keys())}")
+
         if listing.get("unique_id", "") == unique_id:
-            sheet.update_cell(i + 2, list(listing.keys()).index("contact") + 1, contact)
+            if "Contact" not in listing:
+                raise KeyError("The 'Contact' column is missing from Google Sheets.")
+            sheet.update_cell(i + 2, list(listing.keys()).index("Contact") + 1, contact)
             return
     raise ValueError("Matching listing not found in Google Sheets.")
-
 
 
 
