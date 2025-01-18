@@ -38,6 +38,10 @@ def update_contact_in_google_sheets(row, contact):
     ]
     row_standardized = {key.lower().strip(): str(value).strip() for key, value in row.items()}
 
+    # Debugging: Log row and listings for comparison
+    print("Standardized Row:", row_standardized)
+    print("Standardized Listings:", standardized_listings)
+
     # Identify row to update by matching key fields
     for i, listing in enumerate(standardized_listings):
         try:
@@ -47,13 +51,18 @@ def update_contact_in_google_sheets(row, contact):
                 and listing.get("address", "") == row_standardized.get("address", "")
             ):
                 # Update "Contact" column
-                contact_col_index = list(listings[0].keys()).index("contact") + 1  # Find "Contact" column index
-                sheet.update_cell(i + 2, contact_col_index, contact)  # Add 2 to skip headers
+                contact_col_index = list(sheet.get_all_records()[0].keys()).index("Contact") + 1  # Adjust for 'Contact'
+                sheet.update_cell(i + 2, contact_col_index, contact)  # Add 2 to skip header
+                print(f"Contact successfully updated for row {i + 2}")
                 return True
         except Exception as e:
-            print(f"Error during contact update: {e}")
+            print(f"Error during contact update for row {i + 2}: {e}")
             continue
+
+    # Debugging: If no match is found
+    print("Matching listing not found for:", row_standardized)
     raise ValueError("Matching listing not found in Google Sheets.")
+
 
 
 
