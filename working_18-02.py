@@ -3,7 +3,7 @@ import pandas as pd
 from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets
 
 # Load the Excel file
-uploaded_file = "Filtered_WhatsApp_Announcements (7).xlsx"
+uploaded_file = "Filtered_WhatsApp_Announcements (9).xlsx"
 
 sheets = {"All Messages": "All Messages", "Demands": "Demands", "Supply": "Supply"}
 data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in sheets.items()}
@@ -80,6 +80,22 @@ st.markdown(
         font-weight: bold;
         font-size: 18px;
     }
+
+    /* Call-to-action Buttons */
+    .cta-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #4a90e2;
+        color: #ffffff;
+        border-radius: 8px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: bold;
+        transition: all 0.3s ease-in-out;
+    }
+    .cta-button:hover {
+        background-color: #0076d5;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -98,13 +114,8 @@ df_google_sheets = load_google_sheets()
 # Combine both datasets
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-# Parse the "date", "starting from", and "until" columns
-for column in ["date", "starting from", "until"]:
-    df_combined[column] = pd.to_datetime(df_combined[column], errors="coerce")
-
-# Replace invalid dates with NaT (interpreted as missing values)
-df_combined["starting from"] = df_combined["starting from"].fillna(pd.NaT)
-df_combined["until"] = df_combined["until"].fillna(pd.NaT)
+# Parse the "date" column and handle errors
+df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
 df_combined["date"] = df_combined["date"].fillna("NA")
 
 # Sort by date, placing "NA" at the bottom
@@ -116,36 +127,20 @@ df_combined["date_display"] = df_combined["date"].apply(
     lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
 )
 
+# Clean the "residence" column to standardize its values
+df_combined["residence"] = df_combined["residence"].str.strip().str.lower()
+df_combined["residence"] = df_combined["residence"].replace({"yes": "Yes", "no": "NA"}).fillna("NA")
+
 # Sidebar filters
 st.sidebar.header("Filters")
 unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["unit type"].unique()))
-residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All"] + sorted(df_combined["residence"].unique()))
-date_range = st.sidebar.date_input("Filter by Dates (Start and End):", [])
+residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All", "Yes"])
 
 # Apply filters
 if unit_type_filter != "All":
     df_combined = df_combined[df_combined["unit type"] == unit_type_filter]
-if residence_filter != "All":
-    df_combined = df_combined[df_combined["residence"] == residence_filter]
-
-# Filter based on "Starting From" and "Until"
-if len(date_range) == 2:
-    start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
-
-    # Inclusive logic with 2-month buffers
-    buffer_start_date = start_date - pd.Timedelta(days=60)
-    buffer_end_date = end_date + pd.Timedelta(days=60)
-
-    # Create masks for filtering
-    mask_starting_from = (
-        df_combined["starting from"].isna() | (df_combined["starting from"] <= buffer_end_date)
-    )
-    mask_until = (
-        df_combined["until"].isna() | (df_combined["until"] >= buffer_start_date)
-    )
-
-    # Apply the masks
-    df_combined = df_combined[mask_starting_from & mask_until]
+if residence_filter == "Yes":
+    df_combined = df_combined[df_combined["residence"] == "Yes"]
 
 # Display listings
 st.title("Apartment Listings (Sorted by Date Added)")
