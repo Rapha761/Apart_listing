@@ -31,30 +31,29 @@ def update_contact_in_google_sheets(row, contact):
     sheet = client.open("Listing_form").sheet1
     listings = sheet.get_all_records()
 
-    # Ensure all keys are lowercased and stripped for comparison
+    # Ensure all keys and values are lowercased and stripped for comparison
     standardized_listings = [
-        {key.lower().strip(): value for key, value in listing.items()}
+        {key.lower().strip(): str(value).strip() for key, value in listing.items()}
         for listing in listings
     ]
-    row_standardized = {key.lower().strip(): value for key, value in row.items()}
+    row_standardized = {key.lower().strip(): str(value).strip() for key, value in row.items()}
 
     # Identify row to update by matching key fields
     for i, listing in enumerate(standardized_listings):
         try:
             if (
-                listing.get("name", "").strip() == row_standardized.get("name", "").strip()
-                and listing.get("dates", "").strip() == row_standardized.get("dates", "").strip()
-                and listing.get("address", "").strip() == row_standardized.get("address", "").strip()
+                listing.get("name", "") == row_standardized.get("name", "")
+                and listing.get("dates", "") == row_standardized.get("dates", "")
+                and listing.get("address", "") == row_standardized.get("address", "")
             ):
                 # Update "Contact" column
-                contact_col_index = len(listing) - 3  # Adjust for "Contact" column index
+                contact_col_index = list(listings[0].keys()).index("contact") + 1  # Find "Contact" column index
                 sheet.update_cell(i + 2, contact_col_index, contact)  # Add 2 to skip headers
                 return True
-        except KeyError as e:
-            print(f"KeyError during contact update: {e}")
+        except Exception as e:
+            print(f"Error during contact update: {e}")
             continue
     raise ValueError("Matching listing not found in Google Sheets.")
-
 
 
 
