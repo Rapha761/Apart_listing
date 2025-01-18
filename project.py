@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
-from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets
+from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets, update_contact
 
 # Load the Excel file
-uploaded_file = "Filtered_WhatsApp_Announcements (9).xlsx"
+uploaded_file = "Filtered_WhatsApp_Announcements_New.xlsx"
 
 sheets = {"All Messages": "All Messages", "Demands": "Demands", "Supply": "Supply"}
 data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in sheets.items()}
@@ -127,10 +127,6 @@ df_combined["date_display"] = df_combined["date"].apply(
     lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
 )
 
-# Clean the "residence" column to standardize its values
-df_combined["residence"] = df_combined["residence"].str.strip().str.lower()
-df_combined["residence"] = df_combined["residence"].replace({"yes": "Yes", "no": "NA"}).fillna("NA")
-
 # Sidebar filters
 st.sidebar.header("Filters")
 unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["unit type"].unique()))
@@ -139,8 +135,8 @@ residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All", 
 # Apply filters
 if unit_type_filter != "All":
     df_combined = df_combined[df_combined["unit type"] == unit_type_filter]
-if residence_filter == "Yes":
-    df_combined = df_combined[df_combined["residence"] == "Yes"]
+if residence_filter != "All":
+    df_combined = df_combined[df_combined["residence"] == residence_filter]
 
 # Display listings
 st.title("Apartment Listings (Sorted by Date Added)")
@@ -148,13 +144,15 @@ st.title("Apartment Listings (Sorted by Date Added)")
 if not df_combined.empty:
     for _, row in df_combined.iterrows():
         title = "Residence" if row["residence"] == "Yes" else "Accommodation"
+        contact_info = row["contact"] if row["contact"] != "NA" else "No contact available"
         st.markdown(
             f"""
             <div class="card">
                 <h4>{title}</h4>
                 <p><strong>Dates:</strong> {row['dates']}</p>
                 <p><strong>Posted by:</strong> {row['name']}</p>
-                <p><strong>Posted on:</strong> {row['date_display']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
+                <p><strong>Contact:</strong> {contact_info}</p>
+                <p><strong>Posted on:</strong> {row['date_display']} at {row['time']}</p>
                 <p><strong>Address:</strong> {row['address']}</p>
                 <p><strong>Amenities:</strong> {row['amenities']}</p>
                 <p><strong>Location Features:</strong> {row['location features']}</p>
@@ -179,9 +177,21 @@ with st.sidebar.form("new_listing_form"):
     amenities = st.text_area("Amenities (optional)")
     location_features = st.text_area("Location Features (optional)")
     message = st.text_area("Message (optional)")
+    contact = st.text_input("Contact (optional)")
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
+        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
         st.success("Offer added successfully!")
+
+# Contact update form
+st.sidebar.header("Update Contact Information")
+with st.sidebar.form("update_contact_form"):
+    selected_listing = st.selectbox("Select Listing to Update Contact", df_combined["name"].unique())
+    new_contact = st.text_input("New Contact Number")
+    update_submit = st.form_submit_button("Update Contact")
+
+    if update_submit:
+        update_contact(selected_listing, new_contact)
+        st.success("Contact updated successfully!")
 
