@@ -25,17 +25,22 @@ df_google_sheets = load_google_sheets()
 # Combine both datasets
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-# Ensure the "date" column is in datetime format for sorting
-# Attempt parsing with explicit format; log any failures
+# Debugging: Inspect the Date column
+st.write("Preview of the 'Date' column before parsing:")
+st.write(df_combined[["date"]].head(10))
+
+# Attempt to parse the Date column
 try:
-    df_combined["date"] = pd.to_datetime(df_combined["date"], format="%d/%m/%Y", errors="coerce")
+    df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
+    st.write("Preview of the 'Date' column after parsing:")
+    st.write(df_combined[["date"]].head(10))
 except Exception as e:
     st.error(f"Date parsing error: {e}")
 
-# Replace NaT with "NA" for the date column
+# Replace NaT with "NA" for the Date column
 df_combined["date"] = df_combined["date"].fillna("NA")
 
-# Sort by date, placing "NA" at the bottom
+# Sort by Date, placing "NA" at the bottom
 df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
 df_combined = df_combined.sort_values(by="sort_key", ascending=False).drop(columns=["sort_key"])
 
@@ -92,6 +97,7 @@ with st.sidebar.form("new_listing_form"):
     if submit:
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
 
 
