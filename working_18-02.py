@@ -12,6 +12,95 @@ data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in 
 for key in data:
     data[key].columns = data[key].columns.str.strip().str.lower()
 
+# Global styles
+st.markdown(
+    """
+    <style>
+    /* Background for Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #e6f3ff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Sidebar Toggle Buttons */
+    [data-testid="stSidebar"] .css-1d391kg {
+        border-radius: 20px;
+        background-color: #ffffff;
+        padding: 8px 16px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease-in-out;
+    }
+    [data-testid="stSidebar"] .css-1d391kg:hover {
+        background-color: #4a90e2;
+        color: #ffffff;
+    }
+    [data-testid="stSidebar"] .css-1d391kg[aria-selected="true"] {
+        background-color: #0076d5;
+        color: #ffffff;
+    }
+
+    /* Filter Dropdown Styling */
+    .css-1wxaqej {
+        border: 1px solid #cccccc;
+        border-radius: 10px;
+        padding: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+    }
+    .card:hover {
+        background-color: #f0f8ff;
+        border-color: #0076d5;
+    }
+
+    /* Text Styling */
+    h4 {
+        color: #333333;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+    }
+    p {
+        color: #555555;
+        font-family: 'Helvetica', sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+    .price {
+        color: #0076d5;
+        font-weight: bold;
+        font-size: 18px;
+    }
+
+    /* Call-to-action Buttons */
+    .cta-button {
+        display: inline-block;
+        padding: 10px 20px;
+        background-color: #4a90e2;
+        color: #ffffff;
+        border-radius: 8px;
+        text-decoration: none;
+        text-align: center;
+        font-weight: bold;
+        transition: all 0.3s ease-in-out;
+    }
+    .cta-button:hover {
+        background-color: #0076d5;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 # Sidebar navigation
 st.sidebar.header("Navigation")
 selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
