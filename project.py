@@ -98,8 +98,13 @@ df_google_sheets = load_google_sheets()
 # Combine both datasets
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-# Parse the "date" column and handle errors
-df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
+# Parse the "date", "starting from", and "until" columns
+for column in ["date", "starting from", "until"]:
+    df_combined[column] = pd.to_datetime(df_combined[column], errors="coerce")
+
+# Replace invalid dates with "NA"
+df_combined["starting from"] = df_combined["starting from"].fillna("NA")
+df_combined["until"] = df_combined["until"].fillna("NA")
 df_combined["date"] = df_combined["date"].fillna("NA")
 
 # Sort by date, placing "NA" at the bottom
@@ -125,23 +130,14 @@ if residence_filter != "All":
 
 # Filter based on "Starting From" and "Until"
 if len(date_range) == 2:
-    start_date, end_date = date_range
+    start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
 
-    # Define a mask for valid comparisons
-    mask_starting_from = (df_combined["starting from"].apply(lambda x: isinstance(x, pd.Timestamp)) &
-                          (df_combined["starting from"] <= end_date))
-    mask_until = (df_combined["until"].apply(lambda x: isinstance(x, pd.Timestamp)) &
-                  (df_combined["until"] >= start_date))
+    # Create masks for filtering
+    mask_starting_from = (df_combined["starting from"] <= end_date) | (df_combined["starting from"] == "NA")
+    mask_until = (df_combined["until"] >= start_date) | (df_combined["until"] == "NA")
 
-    # Include entries with "NA" in either column
-    mask_na_starting_from = (df_combined["starting from"] == "NA")
-    mask_na_until = (df_combined["until"] == "NA")
-
-    # Combine masks
-    df_combined = df_combined[
-        (mask_starting_from | mask_na_starting_from) &
-        (mask_until | mask_na_until)
-    ]
+    # Apply the masks
+    df_combined = df_combined[mask_starting_from & mask_until]
 
 # Display listings
 st.title("Apartment Listings (Sorted by Date Added)")
@@ -185,5 +181,6 @@ with st.sidebar.form("new_listing_form"):
     if submit:
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
 
