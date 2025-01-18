@@ -8,6 +8,10 @@ uploaded_file = "Filtered_WhatsApp_Announcements (1).xlsx"
 sheets = {"All Messages": "All Messages", "Demands": "Demands", "Supply": "Supply"}
 data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in sheets.items()}
 
+# Standardize column names in Excel data
+for key in data:
+    data[key].columns = data[key].columns.str.strip().str.lower()
+
 # Global styles
 st.markdown(
     """
@@ -110,36 +114,48 @@ df_google_sheets = load_google_sheets()
 # Combine both datasets
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-# Ensure proper sorting by Date, with NA values at the bottom
-df_combined["Date"] = pd.to_datetime(df_combined["Date"], errors="coerce")
-df_combined = df_combined.sort_values(by="Date", ascending=False, na_position="last")
+# Parse the "date" column and handle errors
+df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
+df_combined["date"] = df_combined["date"].fillna("NA")
+
+# Sort by date, placing "NA" at the bottom
+df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
+df_combined = df_combined.sort_values(by="sort_key", ascending=False).drop(columns=["sort_key"])
+
+# Format the "date" column for display
+df_combined["date_display"] = df_combined["date"].apply(
+    lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
+)
 
 # Sidebar filters
 st.sidebar.header("Filters")
-unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["Unit Type"].unique()))
-residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All"] + sorted(df_combined["Residence"].unique()))
+unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["unit type"].unique()))
+residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All"] + sorted(df_combined["residence"].unique()))
 
 # Apply filters
 if unit_type_filter != "All":
-    df_combined = df_combined[df_combined["Unit Type"] == unit_type_filter]
+    df_combined = df_combined[df_combined["unit type"] == unit_type_filter]
 if residence_filter != "All":
-    df_combined = df_combined[df_combined["Residence"] == residence_filter]
+    df_combined = df_combined[df_combined["residence"] == residence_filter]
 
 # Display listings
-st.title("Apartment Listings")
+st.title("Apartment Listings (Sorted by Date Added)")
 
 if not df_combined.empty:
     for _, row in df_combined.iterrows():
-        title = "Residence" if row["Residence"] == "Yes" else "Accommodation"
+        title = "Residence" if row["residence"] == "Yes" else "Accommodation"
         st.markdown(
             f"""
             <div class="card">
                 <h4>{title}</h4>
-                <p><strong>Dates:</strong> {row['Dates']}</p>
-                <p><strong>Posted by:</strong> {row['Name']}</p>
-                <p><strong>Posted on:</strong> {row['Date'].strftime('%d/%m/%Y') if not pd.isna(row['Date']) else 'NA'}</p>
-                <p><strong>Location Features:</strong> {row['Location Features']}</p>
-                <p class="price"><strong>Rent:</strong> {row['Rent']} €</p>
+                <p><strong>Dates:</strong> {row['dates']}</p>
+                <p><strong>Posted by:</strong> {row['name']}</p>
+                <p><strong>Posted on:</strong> {row['date_display']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
+                <p><strong>Address:</strong> {row['address']}</p>
+                <p><strong>Amenities:</strong> {row['amenities']}</p>
+                <p><strong>Location Features:</strong> {row['location features']}</p>
+                <p class="price"><strong>Rent:</strong> {row['rent']} €</p>
+                <p><strong>Message:</strong> {row['message']}</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -162,28 +178,5 @@ with st.sidebar.form("new_listing_form"):
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        # Add listing to Google Sheets
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
