@@ -19,78 +19,83 @@ selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
 df_excel = data[selected_view].fillna("NA")
 
 # Load additional data from Google Sheets
+st.write("Loading data from Google Sheets...")
 df_google_sheets = load_google_sheets()
 
-# Standardize column names in Google Sheets data
-df_google_sheets.columns = df_google_sheets.columns.str.strip().str.lower()
+if not df_google_sheets.empty:
+    # Standardize column names in Google Sheets data
+    df_google_sheets.columns = df_google_sheets.columns.str.strip().str.lower()
 
-# Combine datasets
-df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
+    # Combine datasets
+    df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-# Parse the "date" column and handle errors
-df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
-df_combined["date"] = df_combined["date"].fillna("NA")
+    # Parse the "date" column and handle errors
+    df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
+    df_combined["date"] = df_combined["date"].fillna("NA")
 
-# Sort by date, placing "NA" at the bottom
-df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
-df_combined = df_combined.sort_values(by="sort_key", ascending=False).drop(columns=["sort_key"])
+    # Sort by date, placing "NA" at the bottom
+    df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
+    df_combined = df_combined.sort_values(by="sort_key", ascending=False).drop(columns=["sort_key"])
 
-# Format the "date" column for display
-df_combined["date_display"] = df_combined["date"].apply(
-    lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
-)
+    # Format the "date" column for display
+    df_combined["date_display"] = df_combined["date"].apply(
+        lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
+    )
 
-# Sidebar filters
-st.sidebar.header("Filters")
-unit_type_filter = st.sidebar.selectbox(
-    "Filter by Unit Type:", 
-    options=["All"] + sorted(df_combined["unit type"].dropna().unique())
-)
-residence_filter = st.sidebar.selectbox(
-    "Filter by Residence:", 
-    options=["All", "Yes"]
-)
+    # Sidebar filters
+    st.sidebar.header("Filters")
+    unit_type_filter = st.sidebar.selectbox(
+        "Filter by Unit Type:", 
+        options=["All"] + sorted(df_combined["unit type"].dropna().unique())
+    )
+    residence_filter = st.sidebar.selectbox(
+        "Filter by Residence:", 
+        options=["All", "Yes"]
+    )
 
-# Apply filters
-if unit_type_filter != "All":
-    df_combined = df_combined[df_combined["unit type"] == unit_type_filter]
-if residence_filter != "All":
-    df_combined = df_combined[df_combined["residence"] == residence_filter]
+    # Apply filters
+    if unit_type_filter != "All":
+        df_combined = df_combined[df_combined["unit type"] == unit_type_filter]
+    if residence_filter != "All":
+        df_combined = df_combined[df_combined["residence"] == residence_filter]
 
-# Display listings
-st.title("Apartment Listings (Sorted by Date Added)")
+    # Display listings
+    st.title("Apartment Listings (Sorted by Date Added)")
 
-if not df_combined.empty:
-    for index, row in df_combined.iterrows():
-        title = "Residence" if row["residence"] == "Yes" else "Accommodation"
-        st.markdown(
-            f"""
-            <div class="card">
-                <h4>{title}</h4>
-                <p><strong>Dates:</strong> {row['dates']}</p>
-                <p><strong>Posted by:</strong> {row['name']}</p>
-                <p><strong>Posted on:</strong> {row['date_display']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
-                <p><strong>Address:</strong> {row['address']}</p>
-                <p><strong>Amenities:</strong> {row['amenities']}</p>
-                <p><strong>Location Features:</strong> {row['location features']}</p>
-                <p class="price"><strong>Rent:</strong> {row['rent']} €</p>
-                <p><strong>Message:</strong> {row['message']}</p>
-                <p><strong>Contact:</strong> {row['contact']}</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        # Add Contact Section
-        with st.expander(f"Add Contact to Listing {index}"):
-            contact = st.text_input(f"Enter your contact details for listing {index}:")
-            if st.button(f"Submit Contact for Listing {index}"):
-                if contact.strip():
-                    update_contact_in_google_sheets(row, contact, index)
-                    st.success(f"Contact added successfully for listing {index}!")
-                else:
-                    st.error("Contact field cannot be empty.")
+    if not df_combined.empty:
+        for index, row in df_combined.iterrows():
+            title = "Residence" if row["residence"] == "Yes" else "Accommodation"
+            st.markdown(
+                f"""
+                <div class="card">
+                    <h4>{title}</h4>
+                    <p><strong>Dates:</strong> {row['dates']}</p>
+                    <p><strong>Posted by:</strong> {row['name']}</p>
+                    <p><strong>Posted on:</strong> {row['date_display']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
+                    <p><strong>Address:</strong> {row['address']}</p>
+                    <p><strong>Amenities:</strong> {row['amenities']}</p>
+                    <p><strong>Location Features:</strong> {row['location features']}</p>
+                    <p class="price"><strong>Rent:</strong> {row['rent']} €</p>
+                    <p><strong>Message:</strong> {row['message']}</p>
+                    <p><strong>Contact:</strong> {row['contact']}</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            # Add Contact Section
+            with st.expander(f"Add Contact to Listing {index}"):
+                contact = st.text_input(f"Enter your contact details for listing {index}:")
+                if st.button(f"Submit Contact for Listing {index}"):
+                    if contact.strip():
+                        update_contact_in_google_sheets(row, contact, index)
+                        st.success(f"Contact added successfully for listing {index}!")
+                    else:
+                        st.error("Contact field cannot be empty.")
+    else:
+        st.write("No listings match your filters.")
+
 else:
-    st.write("No listings match your filters.")
+    st.error("Failed to load data from Google Sheets.")
 
 # Sidebar form to add new listings
 st.sidebar.header("Add a New Listing")
