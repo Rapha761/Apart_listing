@@ -15,7 +15,7 @@ for key in data:
 st.sidebar.header("Navigation")
 selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
 
-# Load the  sheet
+# Put sheet into streamlit
 df_excel = data[selected_view].fillna("NA")
 
 # Load additional data from Google Sheets - source for additional offers.
@@ -23,17 +23,17 @@ st.write("Most recent offers")
 df_google_sheets = load_google_sheets()
 
 if not df_google_sheets.empty:
-    # Standardize column names in Google Sheets data
+    # Standardizing column names in Google Sheets data
     df_google_sheets.columns = df_google_sheets.columns.str.strip().str.lower()
 
     # Combine datasets (excel + sheet)
     df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-    # Parse the "date" column and handle errors
+    # Making sure dates correspond
     df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
     df_combined["date"] = df_combined["date"].fillna("NA")
 
-    # Sort by date, placing "NA" at the bottom
+    # Sort by date, placing "NA" at the bottom (they are the ones we do not have information about)
     df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
     df_combined = df_combined.sort_values(by="sort_key", ascending=False).drop(columns=["sort_key"])
 
@@ -42,7 +42,7 @@ if not df_google_sheets.empty:
         lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
     )
 
-    # Sidebar filters
+    # Sidebar filters with a toggle of all unique options
     st.sidebar.header("Filters")
     unit_type_filter = st.sidebar.selectbox(
         "Filter by Unit Type:", 
@@ -53,20 +53,20 @@ if not df_google_sheets.empty:
         options=["All", "Yes"]
     )
 
-    # Apply filters
+    # Filters apply to the selection
     if unit_type_filter != "All":
         df_combined = df_combined[df_combined["unit type"] == unit_type_filter]
     if residence_filter != "All":
         df_combined = df_combined[df_combined["residence"] == residence_filter]
 
-    # Display listings
+    # Display listings corresponding sorted by most recent
     st.title("Apartment Listings (Sorted by Date Added)")
 
     if not df_combined.empty:
         for index, row in df_combined.iterrows():
             title = "Residence" if row["residence"] == "Yes" else "Accommodation"
             
-            # Logic for date display
+            # Date display order
             if row['starting from'] != "NA" and row['until'] != "NA":
                 date_display = f"From {row['starting from']} Until {row['until']}"
             elif row['starting from'] != "NA":
@@ -93,7 +93,7 @@ if not df_google_sheets.empty:
                 """,
                 unsafe_allow_html=True,
             )
-            # Add Contact Section
+            # Add Contact Section for people to add contacts
             with st.expander(f"Add Contact to Listing {index}"):
                 contact = st.text_input(f"Enter your contact details for listing {index}:")
                 if st.button(f"Submit Contact for Listing {index}"):
@@ -108,7 +108,7 @@ if not df_google_sheets.empty:
 else:
     st.error("Failed to load data from Google Sheets.")
 
-# Sidebar form to add new listings
+# Sidebar form to add new listings - published to google sheets then downloaded back into streamlit
 st.sidebar.header("Add a New Listing")
 with st.sidebar.form("new_listing_form"):
     name = st.text_input("Name")
