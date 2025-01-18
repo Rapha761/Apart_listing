@@ -80,17 +80,10 @@ if not df_combined.empty:
             """,
             unsafe_allow_html=True,
         )
-        with st.expander(f"Add Contact to Listing {index}"):
-            contact = st.text_input(f"Enter your contact details for listing {index}:", key=f"contact_{index}")
-            if st.button(f"Submit Contact for Listing {index}"):
-                try:
-                    if contact.strip():
-                        update_contact_in_google_sheets(row, contact)
-                        st.success(f"Contact added successfully for listing {index}!")
-                    else:
-                        st.error("Contact field cannot be empty.")
-                except ValueError as e:
-                    st.error(f"Error: {str(e)}")
+        contact = st.text_input(f"Enter your contact for Listing {index}", key=f"contact_{index}")
+        if st.button(f"Submit Contact for Listing {index}", key=f"submit_{index}"):
+            update_contact_in_google_sheets(row, contact)
+            st.success("Contact added successfully!")
 else:
     st.write("No listings match your filters.")
 
@@ -100,18 +93,19 @@ with st.sidebar.form("new_listing_form"):
     name = st.text_input("Name")
     dates = st.text_input("Dates (e.g., '01 Jan 2025 - 31 Jan 2025')")
     address = st.text_input("Address")
-    contact = st.text_input("Contact")
     rent = st.number_input("Rent (€)", min_value=0, step=50)
     unit_type = st.selectbox("Unit Type", ["Studio", "Apartment", "Room"])
     residence = st.radio("Residence", ["Yes", "No"])
+    contact = st.text_input("Contact (required)")
     amenities = st.text_area("Amenities (optional)")
     location_features = st.text_area("Location Features (optional)")
     message = st.text_area("Message (optional)")
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
+        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, contact, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
 
 
