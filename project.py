@@ -102,9 +102,9 @@ df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 for column in ["date", "starting from", "until"]:
     df_combined[column] = pd.to_datetime(df_combined[column], errors="coerce")
 
-# Replace invalid dates with "NA"
-df_combined["starting from"] = df_combined["starting from"].fillna("NA")
-df_combined["until"] = df_combined["until"].fillna("NA")
+# Replace invalid dates with NaT (interpreted as missing values)
+df_combined["starting from"] = df_combined["starting from"].fillna(pd.NaT)
+df_combined["until"] = df_combined["until"].fillna(pd.NaT)
 df_combined["date"] = df_combined["date"].fillna("NA")
 
 # Sort by date, placing "NA" at the bottom
@@ -137,8 +137,12 @@ if len(date_range) == 2:
     buffer_end_date = end_date + pd.Timedelta(days=60)
 
     # Create masks for filtering
-    mask_starting_from = (df_combined["starting from"] <= buffer_end_date) | (df_combined["starting from"] == "NA")
-    mask_until = (df_combined["until"] >= buffer_start_date) | (df_combined["until"] == "NA")
+    mask_starting_from = (
+        df_combined["starting from"].isna() | (df_combined["starting from"] <= buffer_end_date)
+    )
+    mask_until = (
+        df_combined["until"].isna() | (df_combined["until"] >= buffer_start_date)
+    )
 
     # Apply the masks
     df_combined = df_combined[mask_starting_from & mask_until]
@@ -185,6 +189,3 @@ with st.sidebar.form("new_listing_form"):
     if submit:
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
-
-
-
