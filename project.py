@@ -102,24 +102,34 @@ st.sidebar.header("Navigation")
 selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
 
 # Load the selected sheet
-df = data[selected_view].fillna("NA")
+df_excel = data[selected_view].fillna("NA")
+
+# Load additional data from Google Sheets
+df_google_sheets = load_google_sheets()
+
+# Combine both datasets
+df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
+
+# Ensure proper sorting by Date, with NA values at the bottom
+df_combined["Date"] = pd.to_datetime(df_combined["Date"], errors="coerce")
+df_combined = df_combined.sort_values(by="Date", ascending=False, na_position="last")
 
 # Sidebar filters
 st.sidebar.header("Filters")
-unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df["Unit Type"].unique()))
-residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All"] + sorted(df["Residence"].unique()))
+unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["Unit Type"].unique()))
+residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All"] + sorted(df_combined["Residence"].unique()))
 
 # Apply filters
 if unit_type_filter != "All":
-    df = df[df["Unit Type"] == unit_type_filter]
+    df_combined = df_combined[df_combined["Unit Type"] == unit_type_filter]
 if residence_filter != "All":
-    df = df[df["Residence"] == residence_filter]
+    df_combined = df_combined[df_combined["Residence"] == residence_filter]
 
 # Display listings
 st.title("Apartment Listings")
 
-if not df.empty:
-    for _, row in df.iterrows():
+if not df_combined.empty:
+    for _, row in df_combined.iterrows():
         title = "Residence" if row["Residence"] == "Yes" else "Accommodation"
         st.markdown(
             f"""
@@ -127,7 +137,7 @@ if not df.empty:
                 <h4>{title}</h4>
                 <p><strong>Dates:</strong> {row['Dates']}</p>
                 <p><strong>Posted by:</strong> {row['Name']}</p>
-                <p><strong>Posted on:</strong> {row['Date']}</p>
+                <p><strong>Posted on:</strong> {row['Date'].strftime('%d/%m/%Y') if not pd.isna(row['Date']) else 'NA'}</p>
                 <p><strong>Location Features:</strong> {row['Location Features']}</p>
                 <p class="price"><strong>Rent:</strong> {row['Rent']} €</p>
             </div>
@@ -155,6 +165,7 @@ with st.sidebar.form("new_listing_form"):
         # Add listing to Google Sheets
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
 
 
