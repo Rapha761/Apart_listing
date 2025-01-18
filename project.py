@@ -82,10 +82,10 @@ if not df_combined.empty:
         )
         # Add Contact Section
         with st.expander(f"Add Contact to Listing {index}"):
-            contact = st.text_input(f"Enter your contact details for listing {index}:")
+            contact = st.text_input(f"Enter your contact details for listing {index}:", key=f"contact_{index}")
             if st.button(f"Submit Contact for Listing {index}"):
                 if contact.strip():
-                    update_contact_in_google_sheets(row, contact, index)
+                    update_contact_in_google_sheets(row, contact)
                     st.success(f"Contact added successfully for listing {index}!")
                 else:
                     st.error("Contact field cannot be empty.")
