@@ -9,7 +9,11 @@ def load_google_sheets():
         scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
         creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
         client = gspread.authorize(creds)
-        sheet = client.open("Listing_form").sheet1
+        try:
+            sheet = client.open("Listing_form").sheet1
+        except gspread.SpreadsheetNotFound:
+    st.error("Spreadsheet 'Listing_form' not found. Check the name.")
+
         data = sheet.get_all_records()
         if not data:
             st.warning("Google Sheet is empty or has no records.")
