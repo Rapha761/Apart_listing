@@ -40,18 +40,20 @@ def update_contact_in_google_sheets(row, contact):
 
     # Identify row to update by matching key fields
     for i, listing in enumerate(standardized_listings):
-        if (
-            listing["name"].strip() == row_standardized["name"].strip()
-            and listing["dates"].strip() == row_standardized["dates"].strip()
-            and listing["address"].strip() == row_standardized["address"].strip()
-        ):
-            # Update "Contact" column
-            contact_col_index = len(listing) - 3  # Adjust for "Contact" column index
-            sheet.update_cell(i + 2, contact_col_index, contact)  # Add 2 to skip headers
-            return True
+        try:
+            if (
+                listing.get("name", "").strip() == row_standardized.get("name", "").strip()
+                and listing.get("dates", "").strip() == row_standardized.get("dates", "").strip()
+                and listing.get("address", "").strip() == row_standardized.get("address", "").strip()
+            ):
+                # Update "Contact" column
+                contact_col_index = len(listing) - 3  # Adjust for "Contact" column index
+                sheet.update_cell(i + 2, contact_col_index, contact)  # Add 2 to skip headers
+                return True
+        except KeyError as e:
+            print(f"KeyError during contact update: {e}")
+            continue
     raise ValueError("Matching listing not found in Google Sheets.")
-
-
 
 
 
