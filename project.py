@@ -80,8 +80,10 @@ if not df_combined.empty:
             """,
             unsafe_allow_html=True,
         )
-        contact = st.text_input(f"Enter your contact for Listing {index}", key=f"contact_{index}")
-        if st.button(f"Submit Contact for Listing {index}", key=f"submit_{index}"):
+        contact_input_key = f"contact_input_{index}"
+        submit_button_key = f"submit_contact_{index}"
+        contact = st.text_input("Enter your contact details:", key=contact_input_key)
+        if st.button("Submit Contact", key=submit_button_key):
             update_contact_in_google_sheets(row, contact)
             st.success("Contact added successfully!")
 else:
@@ -96,14 +98,14 @@ with st.sidebar.form("new_listing_form"):
     rent = st.number_input("Rent (€)", min_value=0, step=50)
     unit_type = st.selectbox("Unit Type", ["Studio", "Apartment", "Room"])
     residence = st.radio("Residence", ["Yes", "No"])
-    contact = st.text_input("Contact (required)")
     amenities = st.text_area("Amenities (optional)")
     location_features = st.text_area("Location Features (optional)")
     message = st.text_area("Message (optional)")
+    contact = st.text_input("Contact")
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, contact, amenities, location_features, message)
+        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
         st.success("Offer added successfully!")
 
 
