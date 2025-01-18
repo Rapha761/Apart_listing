@@ -2,23 +2,23 @@ import streamlit as st
 import pandas as pd
 from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets, update_contact_in_google_sheets
 
-# Load the Excel file
+# Loading the Excel file from previous part --> need to combine
 uploaded_file = "Filtered_WhatsApp_Announcements (9).xlsx"
 sheets = {"All Messages": "All Messages", "Demands": "Demands", "Supply": "Supply"}
 data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in sheets.items()}
 
-# Standardize column names in Excel data
+# Standardize column names in Excel data - have to match with google sheets
 for key in data:
     data[key].columns = data[key].columns.str.strip().str.lower()
 
-# Sidebar navigation
+# Sidebar navigation to put in filters + others elements
 st.sidebar.header("Navigation")
 selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
 
-# Load the selected sheet
+# Load the  sheet
 df_excel = data[selected_view].fillna("NA")
 
-# Load additional data from Google Sheets
+# Load additional data from Google Sheets - source for additional offers.
 st.write("Most recent offers")
 df_google_sheets = load_google_sheets()
 
@@ -26,7 +26,7 @@ if not df_google_sheets.empty:
     # Standardize column names in Google Sheets data
     df_google_sheets.columns = df_google_sheets.columns.str.strip().str.lower()
 
-    # Combine datasets
+    # Combine datasets (excel + sheet)
     df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
     # Parse the "date" column and handle errors
