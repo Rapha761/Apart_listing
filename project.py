@@ -85,7 +85,7 @@ if not df_combined.empty:
             contact = st.text_input(f"Enter your contact details for listing {index}:")
             if st.button(f"Submit Contact for Listing {index}"):
                 if contact.strip():
-                    update_contact_in_google_sheets(row, contact)
+                    update_contact_in_google_sheets(row, contact, index)
                     st.success(f"Contact added successfully for listing {index}!")
                 else:
                     st.error("Contact field cannot be empty.")
@@ -113,6 +113,7 @@ with st.sidebar.form("new_listing_form"):
         else:
             add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
             st.success("Offer added successfully!")
+
 
 
 
