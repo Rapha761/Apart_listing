@@ -2,6 +2,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
 # Load data from Google Sheets
 def load_google_sheets():
@@ -15,9 +16,13 @@ def load_google_sheets():
 
     # Fetch data
     data = sheet.get_all_records()
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
 
-def add_listing_to_google_sheets(name, rent, unit_type, residence, location_features):
+    # Standardize column names
+    df.columns = df.columns.str.strip().str.lower()
+    return df
+
+def add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message):
     # Authenticate using Streamlit Secrets
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
@@ -28,18 +33,20 @@ def add_listing_to_google_sheets(name, rent, unit_type, residence, location_feat
 
     # Define the row to append, matching the column order in the sheet
     new_row = [
-        name,               # Name (user input)
-        dates,               # Dates (default value)
-        "NA",               # Starting From (default value)
-        "NA",               # Until (default value)
-        rent,               # Rent (user input)
-        unit_type,          # Unit Type (user input)
-        residence,          # Residence (user input)
-        address,               # Address (default value)
-        location_features,  # Location Features (user input)
-        "NA",               # Amenities (default value)
-        "Supply",           # Classification (default value, e.g., "Demand" or "Supply")
-        "NA",               # Message (default value)
+        datetime.now().strftime("%Y-%m-%d"),  # Date (current date)
+        datetime.now().strftime("%H:%M:%S"),  # Time (current time)
+        name,                                 # Name (user input)
+        dates,                                # Dates (user input)
+        "",                                   # Starting from (default empty)
+        "",                                   # Until (default empty)
+        rent,                                 # Rent (user input)
+        unit_type,                            # Unit type (user input)
+        residence,                            # Residence (user input)
+        address,                              # Address (user input)
+        amenities or "NA",                    # Amenities (user input, optional)
+        location_features or "NA",            # Location features (user input, optional)
+        message or "NA",                      # Message (user input, optional)
+        "Offering",                           # Classification (default: Offering)
     ]
 
     # Append the new row to the sheet
