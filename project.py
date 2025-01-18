@@ -80,11 +80,15 @@ if not df_combined.empty:
             """,
             unsafe_allow_html=True,
         )
-        if st.button(f"Add Contact to Listing {index}"):
-            contact = st.text_input("Enter your contact details:")
-            if st.button("Submit Contact"):
-                update_contact_in_google_sheets(row, contact)
-                st.success("Contact added successfully!")
+        # Add Contact Section
+        with st.expander(f"Add Contact to Listing {index}"):
+            contact = st.text_input(f"Enter your contact details for listing {index}:")
+            if st.button(f"Submit Contact for Listing {index}"):
+                if contact.strip():
+                    update_contact_in_google_sheets(row, contact)
+                    st.success(f"Contact added successfully for listing {index}!")
+                else:
+                    st.error("Contact field cannot be empty.")
 else:
     st.write("No listings match your filters.")
 
@@ -92,6 +96,7 @@ else:
 st.sidebar.header("Add a New Listing")
 with st.sidebar.form("new_listing_form"):
     name = st.text_input("Name")
+    contact = st.text_input("Contact (required)")
     dates = st.text_input("Dates (e.g., '01 Jan 2025 - 31 Jan 2025')")
     address = st.text_input("Address")
     rent = st.number_input("Rent (€)", min_value=0, step=50)
@@ -103,8 +108,12 @@ with st.sidebar.form("new_listing_form"):
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
-        st.success("Offer added successfully!")
+        if not contact.strip():
+            st.error("Contact is required!")
+        else:
+            add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
+            st.success("Offer added successfully!")
+
 
 
 
