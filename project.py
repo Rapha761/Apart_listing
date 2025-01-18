@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets
-from datetime import datetime, timedelta
 
 # Load the Excel file
 uploaded_file = "Filtered_WhatsApp_Announcements (7).xlsx"
@@ -17,7 +16,70 @@ for key in data:
 st.markdown(
     """
     <style>
-    /* Styling removed for brevity */
+    /* Background for Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #e6f3ff;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Sidebar Toggle Buttons */
+    [data-testid="stSidebar"] .css-1d391kg {
+        border-radius: 20px;
+        background-color: #ffffff;
+        padding: 8px 16px;
+        margin-bottom: 5px;
+        transition: all 0.3s ease-in-out;
+    }
+    [data-testid="stSidebar"] .css-1d391kg:hover {
+        background-color: #4a90e2;
+        color: #ffffff;
+    }
+    [data-testid="stSidebar"] .css-1d391kg[aria-selected="true"] {
+        background-color: #0076d5;
+        color: #ffffff;
+    }
+
+    /* Filter Dropdown Styling */
+    .css-1wxaqej {
+        border: 1px solid #cccccc;
+        border-radius: 10px;
+        padding: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Card Styling */
+    .card {
+        background-color: #ffffff;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease-in-out;
+    }
+    .card:hover {
+        background-color: #f0f8ff;
+        border-color: #0076d5;
+    }
+
+    /* Text Styling */
+    h4 {
+        color: #333333;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+    }
+    p {
+        color: #555555;
+        font-family: 'Helvetica', sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+    .price {
+        color: #0076d5;
+        font-weight: bold;
+        font-size: 18px;
+    }
     </style>
     """,
     unsafe_allow_html=True,
@@ -36,15 +98,9 @@ df_google_sheets = load_google_sheets()
 # Combine both datasets
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-# Parse the "date", "starting from", and "until" columns
+# Parse the "date" column and handle errors
 df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
-df_combined["starting from"] = pd.to_datetime(df_combined["starting from"], errors="coerce")
-df_combined["until"] = pd.to_datetime(df_combined["until"], errors="coerce")
-
-# Replace NaT with NA for display
 df_combined["date"] = df_combined["date"].fillna("NA")
-df_combined["starting from"] = df_combined["starting from"].fillna("NA")
-df_combined["until"] = df_combined["until"].fillna("NA")
 
 # Sort by date, placing "NA" at the bottom
 df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
@@ -59,17 +115,7 @@ df_combined["date_display"] = df_combined["date"].apply(
 st.sidebar.header("Filters")
 unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["unit type"].unique()))
 residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All"] + sorted(df_combined["residence"].unique()))
-
-# Date range filter for "Starting From" and "Until"
-st.sidebar.header("Relevance Filters")
-today = datetime.today()
-default_start_date = today - timedelta(days=15)
-default_end_date = today + timedelta(days=45)
-
-date_range = st.sidebar.date_input(
-    "Relevant Dates Range (Starting From):",
-    value=(default_start_date, default_end_date),
-)
+date_range = st.sidebar.date_input("Filter by Dates (Start and End):", [])
 
 # Apply filters
 if unit_type_filter != "All":
@@ -77,11 +123,24 @@ if unit_type_filter != "All":
 if residence_filter != "All":
     df_combined = df_combined[df_combined["residence"] == residence_filter]
 
+# Filter based on "Starting From" and "Until"
 if len(date_range) == 2:
     start_date, end_date = date_range
+
+    # Define a mask for valid comparisons
+    mask_starting_from = (df_combined["starting from"].apply(lambda x: isinstance(x, pd.Timestamp)) &
+                          (df_combined["starting from"] <= end_date))
+    mask_until = (df_combined["until"].apply(lambda x: isinstance(x, pd.Timestamp)) &
+                  (df_combined["until"] >= start_date))
+
+    # Include entries with "NA" in either column
+    mask_na_starting_from = (df_combined["starting from"] == "NA")
+    mask_na_until = (df_combined["until"] == "NA")
+
+    # Combine masks
     df_combined = df_combined[
-        ((df_combined["starting from"] <= end_date) | (df_combined["starting from"] == "NA")) &
-        ((df_combined["until"] >= start_date) | (df_combined["until"] == "NA"))
+        (mask_starting_from | mask_na_starting_from) &
+        (mask_until | mask_na_until)
     ]
 
 # Display listings
@@ -126,4 +185,5 @@ with st.sidebar.form("new_listing_form"):
     if submit:
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
