@@ -26,7 +26,8 @@ df_google_sheets = load_google_sheets()
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
 # Ensure the "date" column is in datetime format for sorting
-df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
+# Specify the expected format (dd/mm/yyyy)
+df_combined["date"] = pd.to_datetime(df_combined["date"], format="%d/%m/%Y", errors="coerce")
 
 # Sort by date in descending order
 df_combined = df_combined.sort_values(by="date", ascending=False)
