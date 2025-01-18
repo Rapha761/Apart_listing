@@ -12,8 +12,6 @@ data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in 
 for key in data:
     data[key].columns = data[key].columns.str.strip().str.lower()
 
-# Global styles (optional, include your desired styles here)
-
 # Sidebar navigation
 st.sidebar.header("Navigation")
 selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
@@ -24,26 +22,25 @@ df_excel = data[selected_view].fillna("NA")
 # Load additional data from Google Sheets
 df_google_sheets = load_google_sheets()
 
+# Standardize Google Sheets column names
+df_google_sheets.columns = df_google_sheets.columns.str.strip().str.lower()
+
 # Combine both datasets
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
-# Parse the "date" column and handle errors
-df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
-df_combined["date"] = df_combined["date"].fillna("NA")
-
-# Sort by date, placing "NA" at the bottom
-df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
-df_combined = df_combined.sort_values(by="sort_key", ascending=False).drop(columns=["sort_key"])
-
-# Format the "date" column for display
-df_combined["date_display"] = df_combined["date"].apply(
-    lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
-)
+# Debug: Display column names
+st.write("Columns in df_combined:", df_combined.columns.tolist())
 
 # Sidebar filters
 st.sidebar.header("Filters")
-unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["unit type"].unique()))
-residence_filter = st.sidebar.selectbox("Filter by Residence:", options=["All", "Yes"])
+unit_type_filter = st.sidebar.selectbox(
+    "Filter by Unit Type:", 
+    options=["All"] + sorted(df_combined["unit type"].dropna().unique())
+)
+residence_filter = st.sidebar.selectbox(
+    "Filter by Residence:", 
+    options=["All"] + sorted(df_combined["residence"].dropna().unique())
+)
 
 # Apply filters
 if unit_type_filter != "All":
@@ -63,8 +60,8 @@ if not df_combined.empty:
                 <h4>{title}</h4>
                 <p><strong>Dates:</strong> {row['dates']}</p>
                 <p><strong>Posted by:</strong> {row['name']}</p>
+                <p><strong>Posted on:</strong> {row['date']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
                 <p><strong>Contact:</strong> {row['contact']}</p>
-                <p><strong>Posted on:</strong> {row['date_display']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
                 <p><strong>Address:</strong> {row['address']}</p>
                 <p><strong>Amenities:</strong> {row['amenities']}</p>
                 <p><strong>Location Features:</strong> {row['location features']}</p>
@@ -81,7 +78,7 @@ else:
 st.sidebar.header("Add a New Listing")
 with st.sidebar.form("new_listing_form"):
     name = st.text_input("Name")
-    contact = st.text_input("Contact (e.g., phone number or email)")
+    contact = st.text_input("Contact (optional)")
     dates = st.text_input("Dates (e.g., '01 Jan 2025 - 31 Jan 2025')")
     address = st.text_input("Address")
     rent = st.number_input("Rent (€)", min_value=0, step=50)
@@ -94,16 +91,7 @@ with st.sidebar.form("new_listing_form"):
 
     if submit:
         add_listing_to_google_sheets(
-            name=name,
-            contact=contact,
-            dates=dates,
-            rent=rent,
-            unit_type=unit_type,
-            residence=residence,
-            address=address,
-            amenities=amenities,
-            location_features=location_features,
-            message=message,
+            name, contact, dates, rent, unit_type, residence, address, amenities, location_features, message
         )
         st.success("Offer added successfully!")
 
