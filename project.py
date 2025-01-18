@@ -43,11 +43,11 @@ df_combined["date_display"] = df_combined["date"].apply(
 # Sidebar filters
 st.sidebar.header("Filters")
 unit_type_filter = st.sidebar.selectbox(
-    "Filter by Unit Type:", 
+    "Filter by Unit Type:",
     options=["All"] + sorted(df_combined["unit type"].dropna().unique())
 )
 residence_filter = st.sidebar.selectbox(
-    "Filter by Residence:", 
+    "Filter by Residence:",
     options=["All", "Yes"]
 )
 
@@ -61,7 +61,7 @@ if residence_filter != "All":
 st.title("Apartment Listings (Sorted by Date Added)")
 
 if not df_combined.empty:
-    for index, row in df_combined.iterrows():
+    for _, row in df_combined.iterrows():
         title = "Residence" if row["residence"] == "Yes" else "Accommodation"
         st.markdown(
             f"""
@@ -80,13 +80,24 @@ if not df_combined.empty:
             """,
             unsafe_allow_html=True,
         )
-        if st.button(f"Add Contact to Listing {index}"):
-            contact = st.text_input("Enter your contact details:")
-            if st.button("Submit Contact"):
-                update_contact_in_google_sheets(row, contact)
-                st.success("Contact added successfully!")
 else:
     st.write("No listings match your filters.")
+
+# Form to update contact information
+st.sidebar.header("Add Contact Information")
+with st.sidebar.form("update_contact_form"):
+    name = st.text_input("Name of the Listing")
+    dates = st.text_input("Dates of the Listing")
+    address = st.text_input("Address of the Listing")
+    contact = st.text_input("Your Contact Information")
+    submit_contact = st.form_submit_button("Submit Contact")
+
+    if submit_contact:
+        try:
+            update_contact_in_google_sheets(name, dates, address, contact)
+            st.success("Contact information updated successfully!")
+        except ValueError as e:
+            st.error(f"Error: {e}")
 
 # Sidebar form to add new listings
 st.sidebar.header("Add a New Listing")
@@ -100,10 +111,11 @@ with st.sidebar.form("new_listing_form"):
     amenities = st.text_area("Amenities (optional)")
     location_features = st.text_area("Location Features (optional)")
     message = st.text_area("Message (optional)")
-    submit = st.form_submit_button("Add Offer")
+    submit_listing = st.form_submit_button("Add Offer")
 
-    if submit:
+    if submit_listing:
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
 
