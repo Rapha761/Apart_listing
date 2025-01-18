@@ -132,9 +132,13 @@ if residence_filter != "All":
 if len(date_range) == 2:
     start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
 
+    # Inclusive logic with 2-month buffers
+    buffer_start_date = start_date - pd.Timedelta(days=60)
+    buffer_end_date = end_date + pd.Timedelta(days=60)
+
     # Create masks for filtering
-    mask_starting_from = (df_combined["starting from"] <= end_date) | (df_combined["starting from"] == "NA")
-    mask_until = (df_combined["until"] >= start_date) | (df_combined["until"] == "NA")
+    mask_starting_from = (df_combined["starting from"] <= buffer_end_date) | (df_combined["starting from"] == "NA")
+    mask_until = (df_combined["until"] >= buffer_start_date) | (df_combined["until"] == "NA")
 
     # Apply the masks
     df_combined = df_combined[mask_starting_from & mask_until]
