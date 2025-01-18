@@ -25,6 +25,12 @@ df_google_sheets = load_google_sheets()
 # Combine both datasets
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
+# Ensure the "date" column is in datetime format for sorting
+df_combined["date"] = pd.to_datetime(df_combined["date"], errors="coerce")
+
+# Sort by date in descending order
+df_combined = df_combined.sort_values(by="date", ascending=False)
+
 # Sidebar filters
 st.sidebar.header("Filters")
 unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["unit type"].unique()))
@@ -37,7 +43,7 @@ if residence_filter != "All":
     df_combined = df_combined[df_combined["residence"] == residence_filter]
 
 # Display listings
-st.title("Apartment Listings")
+st.title("Apartment Listings (Sorted by Date Added)")
 
 if not df_combined.empty:
     for _, row in df_combined.iterrows():
@@ -78,6 +84,7 @@ with st.sidebar.form("new_listing_form"):
     if submit:
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
+
 
 
 
