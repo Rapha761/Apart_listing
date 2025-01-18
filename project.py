@@ -19,7 +19,7 @@ selected_view = st.sidebar.radio("Choose a view:", list(data.keys()))
 df_excel = data[selected_view].fillna("NA")
 
 # Load additional data from Google Sheets
-st.write("Loading data from Google Sheets...")
+st.write("Most recent offers")
 df_google_sheets = load_google_sheets()
 
 if not df_google_sheets.empty:
