@@ -65,11 +65,22 @@ if not df_google_sheets.empty:
     if not df_combined.empty:
         for index, row in df_combined.iterrows():
             title = "Residence" if row["residence"] == "Yes" else "Accommodation"
+            
+            # Logic for date display
+            if row['starting from'] != "NA" and row['until'] != "NA":
+                date_display = f"From {row['starting from']} Until {row['until']}"
+            elif row['starting from'] != "NA":
+                date_display = f"From {row['starting from']}"
+            elif row['until'] != "NA":
+                date_display = f"Until {row['until']}"
+            else:
+                date_display = f"Dates: {row['dates']}"
+
             st.markdown(
                 f"""
                 <div class="card">
                     <h4>{title}</h4>
-                    <p><strong>Dates:</strong> {row['dates']}</p>
+                    <p><strong>{date_display}</strong></p>
                     <p><strong>Posted by:</strong> {row['name']}</p>
                     <p><strong>Posted on:</strong> {row['date_display']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
                     <p><strong>Address:</strong> {row['address']}</p>
@@ -118,4 +129,5 @@ with st.sidebar.form("new_listing_form"):
         else:
             add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
             st.success("Offer added successfully!")
+
 
