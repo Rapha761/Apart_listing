@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import uuid
 from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets, update_contact_in_google_sheets
 
 # Load the Excel file
@@ -105,10 +106,9 @@ with st.sidebar.form("new_listing_form"):
     submit = st.form_submit_button("Add Offer")
 
     if submit:
-        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact)
+        unique_id = str(uuid.uuid4())
+        add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message, contact, unique_id)
         st.success("Offer added successfully!")
-
-
 
 
 
