@@ -33,6 +33,11 @@ df_combined["date"] = df_combined["date"].fillna("NA")
 df_combined["sort_key"] = df_combined["date"].apply(lambda x: pd.Timestamp.min if x == "NA" else x)
 df_combined = df_combined.sort_values(by="sort_key", ascending=False).drop(columns=["sort_key"])
 
+# Format the "date" column for display
+df_combined["date_display"] = df_combined["date"].apply(
+    lambda x: x.strftime("%d/%m/%Y") if x != "NA" else "NA"
+)
+
 # Sidebar filters
 st.sidebar.header("Filters")
 unit_type_filter = st.sidebar.selectbox("Filter by Unit Type:", options=["All"] + sorted(df_combined["unit type"].unique()))
@@ -56,7 +61,7 @@ if not df_combined.empty:
                 <h4>{title}</h4>
                 <p><strong>Dates:</strong> {row['dates']}</p>
                 <p><strong>Posted by:</strong> {row['name']}</p>
-                <p><strong>Posted on:</strong> {row['date']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
+                <p><strong>Posted on:</strong> {row['date_display']} at {row['time'] if row['time'] != 'NA' else 'NA'}</p>
                 <p><strong>Address:</strong> {row['address']}</p>
                 <p><strong>Amenities:</strong> {row['amenities']}</p>
                 <p><strong>Location Features:</strong> {row['location features']}</p>
@@ -86,7 +91,6 @@ with st.sidebar.form("new_listing_form"):
     if submit:
         add_listing_to_google_sheets(name, dates, rent, unit_type, residence, address, amenities, location_features, message)
         st.success("Offer added successfully!")
-
 
 
 
