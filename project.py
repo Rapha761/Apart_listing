@@ -3,7 +3,7 @@ import pandas as pd
 from google_sheets_integration import load_google_sheets, add_listing_to_google_sheets, update_contact_in_google_sheets
 
 # Loading the Excel file from previous part --> need to combine
-uploaded_file = "Filtered_WhatsApp_Announcements (9).xlsx"
+uploaded_file = "Filtered_WhatsApp_Announcements.xlsx"
 sheets = {"All Messages": "All Messages", "Demands": "Demands", "Supply": "Supply"}
 data = {name: pd.read_excel(uploaded_file, sheet_name=sheet) for name, sheet in sheets.items()}
 
