@@ -26,7 +26,11 @@ df_google_sheets = load_google_sheets()
 df_combined = pd.concat([df_excel, df_google_sheets], ignore_index=True)
 
 # Ensure the "date" column is in datetime format for sorting
-df_combined["date"] = pd.to_datetime(df_combined["date"], format="%d/%m/%Y", errors="coerce")
+# Attempt parsing with explicit format; log any failures
+try:
+    df_combined["date"] = pd.to_datetime(df_combined["date"], format="%d/%m/%Y", errors="coerce")
+except Exception as e:
+    st.error(f"Date parsing error: {e}")
 
 # Replace NaT with "NA" for the date column
 df_combined["date"] = df_combined["date"].fillna("NA")
