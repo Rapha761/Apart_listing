@@ -11,16 +11,29 @@ def load_google_sheets():
     sheet = client.open("Listing_form").sheet1
 
     try:
-        # Fetch records from the Google Sheet
-        data = sheet.get_all_records()
-        st.write(f"Google Sheet loaded successfully. Found {len(data)} rows.")
-        return pd.DataFrame(data)
+        # Fetch all values from the sheet
+        raw_data = sheet.get_all_values()
+
+        # Check if the sheet has any rows
+        if not raw_data or len(raw_data) < 2:
+            st.warning("Google Sheet is empty or has no data.")
+            return pd.DataFrame()
+
+        # Extract headers and rows
+        headers = raw_data[0]
+        rows = raw_data[1:]
+
+        # Create a DataFrame
+        df = pd.DataFrame(rows, columns=headers)
+
+        # Fill missing columns with "NA" for consistency
+        df = df.fillna("NA")
+
+        st.write(f"Loaded {len(df)} rows from Google Sheets.")
+        return df
+
     except Exception as e:
-        # Debugging raw data
         st.error(f"Error loading Google Sheet: {e}")
-        st.write("Attempting to fetch raw values for debugging...")
-        raw_values = sheet.get_all_values()
-        st.write(f"Raw values from Google Sheets: {raw_values}")
         raise
 
 # Add a new listing to Google Sheets
@@ -42,18 +55,26 @@ def update_contact_in_google_sheets(row, contact):
     sheet = client.open("Listing_form").sheet1
 
     try:
-        # Find the matching row in Google Sheets
+        # Fetch all records and standardize for comparison
         records = sheet.get_all_records()
-        for i, record in enumerate(records):
-            if (record.get("Name", "").strip().lower() == row["name"].strip().lower() and
-                record.get("Dates", "").strip().lower() == row["dates"].strip().lower()):
+        records_df = pd.DataFrame(records)
+        records_df.columns = records_df.columns.str.lower().str.strip()
+
+        # Standardize the input row for comparison
+        row_standardized = {key.lower().strip(): str(value).strip().lower() for key, value in row.items()}
+
+        # Find the matching row in Google Sheets
+        for i, listing in records_df.iterrows():
+            if (listing.to_dict() == row_standardized):
                 # Update the "Contact" column
-                sheet.update_cell(i + 2, list(record.keys()).index("Contact") + 1, contact)
+                sheet.update_cell(i + 2, list(records[0].keys()).index("Contact") + 1, contact)
                 st.success("Contact updated successfully!")
                 return
 
         raise ValueError("Matching listing not found in Google Sheets.")
+
     except Exception as e:
         st.error(f"Error updating contact: {e}")
         raise
+
 
